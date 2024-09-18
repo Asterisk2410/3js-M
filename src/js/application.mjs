@@ -1,6 +1,7 @@
     // Import necessary modules
     import * as THREE from 'three';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/RGBELoader.js';  //RGB for environment
     import CommonFunctions from './commonfunctions.js'
 
 
@@ -31,21 +32,58 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById('scene-container').appendChild(renderer.domElement);
 
+    // Add lights
+    const light = new THREE.AmbientLight(0x9fc5e8, 1.2); // Soft white light
+    const directionalLight = new THREE.DirectionalLight(0x9fc5e8, 1.5);
+    directionalLight.position.set(5, 20, 30);
+    directionalLight.scale.set(5, 5, 5);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.camera.near = 0.1;
+    directionalLight.shadow.camera.far = 100;
+    directionalLight.shadow.camera.left = -3;
+    directionalLight.shadow.camera.right = 3;
+    directionalLight.shadow.camera.top = 3;
+    directionalLight.shadow.camera.bottom = -3;
+        
+    
+    // Update directional light's shadow bias and normal bias for better shadow placement
+    directionalLight.shadow.bias = -0.0005;      // Fine-tune shadow placement
+    directionalLight.shadow.normalBias = 0.05;  // Reduce shadow artifacts
+    
+    // Increase the shadow map resolution for sharper shadows
+    directionalLight.shadow.mapSize.width = 4096;
+    directionalLight.shadow.mapSize.height = 4096;
+    
+    scene.add(light);
+    scene.add(directionalLight);    
+
     // // Set background image
     // loader.load('./static/images/3d_images.jpg', function(texture) {
     //     scene.background = texture;
     // });
+    // Set background glb
+    gltfLoader.load('src/static/assets/background.glb', function (gltf) {
+        const background = gltf.scene;
+        directionalLight.target = background; 
+        directionalLight.target.updateMatrixWorld();
+        background.scale.set(0.5, 0.5, 0.5);
+        background.position.set(0, 0.455, 0.4);
+        background.rotation.y = -1.6;
+        background.traverse((child) => {
+            if (child.isMesh) {
+                console.log('here', child);
+                child.receiveShadow = true;
+                child.castShadow = true;
+            }
+        });
+        // background.rotation.x = -0.5;
+        scene.add(background);
+    }, undefined, function (error) {
+        console.error('An error occurred while loading the background GLB file:', error);
+    });
 
     // Set camera position
     camera.position.set(0, 1, 4);
-
-    // Add lights
-    const light = new THREE.AmbientLight(0x9fc5e8, 1.5); // Soft white light
-    scene.add(light);
-    const directionalLight = new THREE.DirectionalLight(0x9fc5e8, 0.75);
-    directionalLight.position.set(20, 10, 70);
-    directionalLight.castShadow = true;
-    scene.add(directionalLight);
 
     //ground code for shadow
     const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 100, 720 ), new THREE.MeshPhongMaterial( { color: 0xf44336, depthWrite: true } ) );
@@ -54,7 +92,7 @@
     scene.add( mesh );
 
     // Load GLB model
-    gltfLoader.load('./static/model/Maya_1.glb', function(gltf) {
+    gltfLoader.load('src/static/model/Maya_1.glb', function(gltf) {
         const character = gltf.scene;
         character.traverse((child) => {
             if(child.isMesh){
@@ -123,7 +161,7 @@
         const str_time = hour + ":" + minute;
         const senderClass = sender === 'user' ? 'justify-content-end' : 'justify-content-start';
         const msgContainerClass = sender === 'user' ? 'msg_cotainer_send' : 'msg_cotainer';
-        const imgSrc = './static/images/drs_user.png';
+        const imgSrc = 'src/static/images/drs_user.png';
         
         const messageHtml = 
             `<div class="d-flex ${senderClass} mb-4">
