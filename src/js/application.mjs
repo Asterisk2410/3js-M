@@ -17,7 +17,7 @@
     let speech = null
     let mixer
     // speech setup
-    const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("cc2d2316e8a84c04a6045403ab7d3762", "eastus");
+    const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("bc7e1881951742a7a44ec8932709db57", "eastus");
     const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
     const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
     const chatText = document.getElementById('text');
@@ -32,9 +32,9 @@
     document.getElementById('scene-container').appendChild(renderer.domElement);
 
     // // Set background image
-    loader.load('src/static/images/3d_images.jpg', function(texture) {
-        scene.background = texture;
-    });
+    // loader.load('./static/images/3d_images.jpg', function(texture) {
+    //     scene.background = texture;
+    // });
 
     // Set camera position
     camera.position.set(0, 1, 4);
@@ -47,9 +47,21 @@
     directionalLight.castShadow = true;
     scene.add(directionalLight);
 
+    //ground code for shadow
+    const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 100, 720 ), new THREE.MeshPhongMaterial( { color: 0xf44336, depthWrite: true } ) );
+    mesh.rotation.x = - Math.PI / 2;
+    mesh.receiveShadow = true;
+    scene.add( mesh );
+
     // Load GLB model
-    gltfLoader.load('src/static/model/Maya_1.glb', function(gltf) {
-        const character = gltf.scene; // The loaded character
+    gltfLoader.load('./static/model/Maya_1.glb', function(gltf) {
+        const character = gltf.scene;
+        character.traverse((child) => {
+            if(child.isMesh){
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        }); // The loaded character
         scene.add(character);
         character.position.set(0, 0.5, 2);
         character.scale.set(0.5, 0.5, 0.5);
@@ -88,7 +100,7 @@
     document.addEventListener('click', () => {
         const silentAudio = new SpeechSDK.SpeakerAudioDestination();
         const silentaudioConfig = SpeechSDK.AudioConfig.fromSpeakerOutput(silentAudio);
-        const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("ff542d4a97f340d4ae9faa685afab149", "eastus");
+        const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("bc7e1881951742a7a44ec8932709db57", "eastus");
         speechConfig.speechSynthesisVoiceName = 'en-US-JennyNeural'; // or use selectedVoice.innerText
         const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, silentaudioConfig);
     
@@ -111,7 +123,7 @@
         const str_time = hour + ":" + minute;
         const senderClass = sender === 'user' ? 'justify-content-end' : 'justify-content-start';
         const msgContainerClass = sender === 'user' ? 'msg_cotainer_send' : 'msg_cotainer';
-        const imgSrc = 'src/static/images/drs_user.png';
+        const imgSrc = './static/images/drs_user.png';
         
         const messageHtml = 
             `<div class="d-flex ${senderClass} mb-4">
